@@ -1,8 +1,6 @@
 package com.suhang.layoutfinder;
 
-import android.databinding.DataBindingUtil;
 import android.util.ArrayMap;
-import android.view.View;
 
 import java.util.Map;
 

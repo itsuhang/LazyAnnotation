@@ -1,9 +1,7 @@
 package com.suhang.layoutfindercompiler;
 
 import com.google.auto.service.AutoService;
-
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.TypeName;
 import com.suhang.layoutfinderannotation.BindLayout;
 import com.suhang.layoutfinderannotation.FindMethod;
 
@@ -30,84 +28,96 @@ import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
 public class LayoutFinderProcessor extends AbstractProcessor {
-    private Map<String, LayoutClass> mLayoutClassMap = new HashMap<>();
-    Filer mFiler;
-    Elements mElements;
-    Messager mMessager;
+	private Map<String, LayoutClass> mLayoutClassMap = new HashMap<>();
+	Filer mFiler;
+	Elements mElements;
+	Messager mMessager;
 
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnvironment) {
-        super.init(processingEnvironment);
-        mFiler = processingEnvironment.getFiler();
-        mElements = processingEnvironment.getElementUtils();
-        mMessager = processingEnvironment.getMessager();
-    }
+	@Override
+	public synchronized void init(ProcessingEnvironment processingEnvironment) {
+		super.init(processingEnvironment);
+		mFiler = processingEnvironment.getFiler();
+		mElements = processingEnvironment.getElementUtils();
+		mMessager = processingEnvironment.getMessager();
+	}
 
-    @Override
-    public Set<String> getSupportedAnnotationTypes() {
-        Set<String> types = new LinkedHashSet<>();
-        types.add(BindLayout.class.getCanonicalName());
-        types.add(FindMethod.class.getCanonicalName());
-        return types;
-    }
+	@Override
+	public Set<String> getSupportedAnnotationTypes() {
+		Set<String> types = new LinkedHashSet<>();
+		types.add(BindLayout.class.getCanonicalName());
+		types.add(FindMethod.class.getCanonicalName());
+		return types;
+	}
 
-    private void processBindView(RoundEnvironment roundEnv) {
-        for (Element element : roundEnv.getElementsAnnotatedWith(BindLayout.class)) {
-            //得到该注解所在的类(若为抽象类则不生成Finder,而是查找该抽象类的子类)
-            TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-            if (!enclosingElement.getModifiers().contains(Modifier.ABSTRACT)) {
-                getLayoutClass(enclosingElement, element);
-            } else {
-                //查找所有的根元素
-                for (Element e : roundEnv.getRootElements()) {
-                    if (e instanceof TypeElement) {
-                        TypeElement typeElement = (TypeElement) e;
-                        TypeMirror mirror = typeElement.getSuperclass();
-                        if (mirror instanceof DeclaredType) {
-                            DeclaredType superclass = (DeclaredType) mirror;
-                            //判断该元素的父类是否为enclosingElement
-                            if (superclass.asElement().equals(enclosingElement)) {
-                                getLayoutClass(typeElement, element);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+	private void processBindView(RoundEnvironment roundEnv) {
+		for (Element element : roundEnv.getElementsAnnotatedWith(BindLayout.class)) {
+			//得到该注解所在的类(若为抽象类则不生成Finder,而是查找该抽象类的子类)
+			TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
+			if (!enclosingElement.getModifiers().contains(Modifier.ABSTRACT)) {
+				getLayoutClass(enclosingElement, element);
+			} else {
+				//查找所有的根元素
+				for (Element e : roundEnv.getRootElements()) {
+					if (e instanceof TypeElement) {
+						TypeElement typeElement = (TypeElement) e;
+						TypeMirror mirror = typeElement.getSuperclass();
+						if (mirror instanceof DeclaredType) {
+							DeclaredType superclass = (DeclaredType) mirror;
+							//判断该元素的父类是否为enclosingElement
+							if (superclass.asElement().equals(enclosingElement)) {
+								getLayoutClass(typeElement, element);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
-    private void getLayoutClass(TypeElement parent, Element element) {
-        String fullClassName = parent.getQualifiedName().toString();
-        LayoutClass annotatedClass = mLayoutClassMap.get(fullClassName);
-        if (annotatedClass == null) {
-            annotatedClass = new LayoutClass(parent, mElements, element);
-            mLayoutClassMap.put(fullClassName, annotatedClass);
-        }
-    }
+	private void getLayoutClass(TypeElement parent, Element element) {
+		String fullClassName = parent.getQualifiedName().toString();
+		LayoutClass annotatedClass = mLayoutClassMap.get(fullClassName);
+		if (annotatedClass == null) {
+			annotatedClass = new LayoutClass(parent, mElements, element);
+			mLayoutClassMap.put(fullClassName, annotatedClass);
+		}
+	}
 
-    @Override
-    public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
-        try {
-            mLayoutClassMap.clear();
-            processBindView(roundEnvironment);
-            for (LayoutClass layoutClass : mLayoutClassMap.values()) {
-                layoutClass.gen().writeTo(mFiler);
+	private MethodClass getMethod(RoundEnvironment roundEnvironment) {
+		Map<String, String> params = new HashMap<>();
+		for (Element element : roundEnvironment.getElementsAnnotatedWith(FindMethod.class)) {
+			for (Element element1 : element.getEnclosedElements()) {
+				for (AnnotationMirror annotationMirror : element1.getAnnotationMirrors()) {
+					DeclaredType type = annotationMirror.getAnnotationType();
+					if (ClassName.get(type).equals(TypeUtil.POST)) {
+						for (AnnotationValue annotationValue : annotationMirror.getElementValues().values()) {
+							params.put(element1.getSimpleName().toString(), annotationValue.getValue().toString());
+						}
+					}
+				}
+			}
+			return new MethodClass(mElements, element, params);
+		}
+		return null;
+	}
 
-            }
+	@Override
+	public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
+		try {
+			mLayoutClassMap.clear();
+			processBindView(roundEnvironment);
+			for (LayoutClass layoutClass : mLayoutClassMap.values()) {
+				layoutClass.gen().writeTo(mFiler);
 
-            for (Element element : roundEnvironment.getElementsAnnotatedWith(FindMethod.class)) {
-                for (Element element1 : element.getEnclosedElements()) {
-                    for (AnnotationMirror annotationMirror : element1.getAnnotationMirrors()) {
-                        for (AnnotationValue annotationValue : annotationMirror.getElementValues().values()) {
-                            mMessager.printMessage(Diagnostic.Kind.ERROR, "出异常了" +annotationValue.getValue().toString());
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            mMessager.printMessage(Diagnostic.Kind.ERROR, "出异常了" + e.getMessage());
-            return true;
-        }
-        return true;
-    }
+			}
+			MethodClass method = getMethod(roundEnvironment);
+			if (method != null) {
+				method.gen().writeTo(mFiler);
+			}
+		} catch (Exception e) {
+			mMessager.printMessage(Diagnostic.Kind.ERROR, "出异常了" + e);
+			return true;
+		}
+		return true;
+	}
 }

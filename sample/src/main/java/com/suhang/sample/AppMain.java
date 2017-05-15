@@ -8,6 +8,7 @@ import java.util.List;
 
 public class AppMain extends ErrorBean{
     public static final String URL = "/api/other/indexApiForApp.php";
+    public static final String URL1 = "/api/other/indexApiForApp1.php";
     public static final String METHOD = "getAppMain";
     private String total;
 

@@ -18,4 +18,9 @@ public interface NetworkService {
     @POST(AppMain.URL)
     @FormUrlEncoded
     Flowable<AppMain> getAppMain(@FieldMap Map<String, String> params);
+
+
+    @POST(AppMain.URL1)
+    @FormUrlEncoded
+    Flowable<AppMain> getApp(@FieldMap Map<String, String> params);
 }
