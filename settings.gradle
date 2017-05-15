@@ -1,0 +1,1 @@
+include  ':layoutfinder-annotation', ':layoutfinder-compiler', ':layoutfinder'
