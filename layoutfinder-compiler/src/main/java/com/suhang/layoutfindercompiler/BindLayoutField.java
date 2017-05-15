@@ -1,7 +1,6 @@
 package com.suhang.layoutfindercompiler;
 
 import com.suhang.layoutfinderannotation.BindLayout;
-import com.suhang.layoutfinderannotation.BindView;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
