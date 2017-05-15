@@ -2,9 +2,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.novoda.bintray-release'
 android {
 
-    lintOptions {
-        abortOnError false
-    }
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
 
@@ -28,6 +25,14 @@ android {
     }
 
 }
+publish {
+    userOrg = 'suhang'
+    groupId = 'com.suhang'
+    artifactId = 'lazyannotation'
+    publishVersion = '1.0.0'
+    desc = 'LazyAnnotation'
+    website = 'https://github.com/lightofrain/LazyAnnotation'
+}
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -36,11 +41,3 @@ dependencies {
     })
 }
 
-publish {
-    userOrg = 'suhang'
-    groupId = 'com.suhang'
-    artifactId = 'LazyAnnotation'
-    publishVersion = '1.0.0'
-    desc = 'LazyAnnotation'
-    website = 'https://github.com/lightofrain/LazyAnnotation'
-}

@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'com.novoda.bintray-release'
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
@@ -7,6 +8,15 @@ dependencies {
     compile 'com.squareup:javapoet:1.7.0'
     compile 'com.google.auto.service:auto-service:1.0-rc2'
     compile project(':layoutfinder-annotation')
+}
+
+publish {
+    userOrg = 'suhang'
+    groupId = 'com.suhang'
+    artifactId = 'lazyannotation_compiler'
+    publishVersion = '1.0.0'
+    desc = 'LazyAnnotation'
+    website = 'https://github.com/lightofrain/LazyAnnotation'
 }
 sourceCompatibility = "1.7"
 targetCompatibility = "1.7"

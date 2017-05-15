@@ -1,9 +1,16 @@
 apply plugin: 'java'
-
+apply plugin: 'com.novoda.bintray-release'
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
-
+publish {
+    userOrg = 'suhang'
+    groupId = 'com.suhang'
+    artifactId = 'lazyannotation_annotation'
+    publishVersion = '1.0.0'
+    desc = 'LazyAnnotation'
+    website = 'https://github.com/lightofrain/LazyAnnotation'
+}
 sourceCompatibility = "1.7"
 targetCompatibility = "1.7"
 

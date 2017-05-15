@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class LayoutFinder {
     private static Map<String, BaseFinder> finds = new ArrayMap<>();
-
+    @SuppressWarnings("unchecked")
     public static <T extends ContextProvider> void find(T cp, int layout) {
         try {
             String name = cp.getClass().getName();
