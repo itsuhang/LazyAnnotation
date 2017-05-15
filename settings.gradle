@@ -1,1 +1,1 @@
-include ':layoutfinder-annotation', ':layoutfinder-compiler', ':layoutfinder'
+include ':layoutfinder-annotation', ':layoutfinder-compiler', ':layoutfinder', ':sample'

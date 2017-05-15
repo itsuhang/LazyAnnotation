@@ -5,6 +5,7 @@ import com.google.auto.service.AutoService;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import com.suhang.layoutfinderannotation.BindLayout;
+import com.suhang.layoutfinderannotation.FindMethod;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -17,6 +18,8 @@ import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -44,6 +47,7 @@ public class LayoutFinderProcessor extends AbstractProcessor {
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> types = new LinkedHashSet<>();
         types.add(BindLayout.class.getCanonicalName());
+        types.add(FindMethod.class.getCanonicalName());
         return types;
     }
 
@@ -89,6 +93,16 @@ public class LayoutFinderProcessor extends AbstractProcessor {
             for (LayoutClass layoutClass : mLayoutClassMap.values()) {
                 layoutClass.gen().writeTo(mFiler);
 
+            }
+
+            for (Element element : roundEnvironment.getElementsAnnotatedWith(FindMethod.class)) {
+                for (Element element1 : element.getEnclosedElements()) {
+                    for (AnnotationMirror annotationMirror : element1.getAnnotationMirrors()) {
+                        for (AnnotationValue annotationValue : annotationMirror.getElementValues().values()) {
+                            mMessager.printMessage(Diagnostic.Kind.ERROR, "出异常了" +annotationValue.getValue().toString());
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             mMessager.printMessage(Diagnostic.Kind.ERROR, "出异常了" + e.getMessage());
