@@ -14,7 +14,7 @@ publish {
     userOrg = 'suhang'
     groupId = 'com.suhang'
     artifactId = 'lazyannotation_compiler'
-    publishVersion = '1.0.0'
+    publishVersion = '1.0.2'
     desc = 'LazyAnnotation'
     website = 'https://github.com/lightofrain/LazyAnnotation'
 }

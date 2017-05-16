@@ -13,15 +13,21 @@ import io.reactivex.Flowable;
 public class MethodFinder {
     private static Map<String, BaseMethodFinder> mFinderMap = new ArrayMap<>();
 
-    public static Flowable find(Class aClass, String url, Object ...objects) {
-        String packname = aClass.getCanonicalName();
-        BaseMethodFinder finder = mFinderMap.get(packname);
-        if (finder == null) {
-            throw new RuntimeException("MethodFinder:请先inject");
+    public static Flowable find(String url, Object ...objects) {
+        for (Map.Entry<String, BaseMethodFinder> entry : mFinderMap.entrySet()) {
+            Flowable flowable = entry.getValue().find(url, objects);
+            if (flowable!=null) {
+                return flowable;
+            }
         }
-        return finder.find(url,objects);
+        return null;
     }
 
+    /**
+     *
+     * @param o 要生成的Retrofit的Service
+     * @param aClass 要生成的Retrofit的Service的字节码(必须是XXXService.class,而不能是xxx.getClass())
+     */
     @SuppressWarnings("unchecked")
     public static void inject(Object o, Class aClass) {
         String packname = aClass.getCanonicalName();

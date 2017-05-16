@@ -27,6 +27,7 @@ import javax.tools.Diagnostic;
 @AutoService(Processor.class)
 public class LayoutFinderProcessor extends AbstractProcessor {
     private Map<String, LayoutClass> mLayoutClassMap = new HashMap<>();
+    private Map<String, MethodClass> mMethodClassMap = new HashMap<>();
     Filer mFiler;
     Elements mElements;
     Messager mMessager;
@@ -81,25 +82,31 @@ public class LayoutFinderProcessor extends AbstractProcessor {
         }
     }
 
-    private MethodClass getMethod(RoundEnvironment roundEnvironment) {
+    private void getMethod(RoundEnvironment roundEnvironment) {
         for (Element element : roundEnvironment.getElementsAnnotatedWith(FindMethod.class)) {
-            return new MethodClass(mElements, element);
+            TypeElement e = (TypeElement) element;
+            String s = e.getQualifiedName().toString();
+            MethodClass methodClass = mMethodClassMap.get(s);
+            if (methodClass == null) {
+                mMethodClassMap.put(s, new MethodClass(mElements, element));
+            }
         }
-        return null;
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         try {
             mLayoutClassMap.clear();
+            mMethodClassMap.clear();
             processBindView(roundEnvironment);
             for (LayoutClass layoutClass : mLayoutClassMap.values()) {
                 layoutClass.gen().writeTo(mFiler);
             }
-            MethodClass method = getMethod(roundEnvironment);
-            if (method != null) {
-                method.gen().writeTo(mFiler);
+            getMethod(roundEnvironment);
+            for (MethodClass methodClass : mMethodClassMap.values()) {
+                methodClass.gen().writeTo(mFiler);
             }
+
         } catch (Exception e) {
             mMessager.printMessage(Diagnostic.Kind.ERROR, "出异常了" + e);
             return true;
