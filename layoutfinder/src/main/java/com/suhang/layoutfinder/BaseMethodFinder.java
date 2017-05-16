@@ -1,7 +1,5 @@
 package com.suhang.layoutfinder;
 
-import java.util.Map;
-
 import io.reactivex.Flowable;
 
 /**
@@ -9,5 +7,7 @@ import io.reactivex.Flowable;
  */
 
 public interface BaseMethodFinder<T> {
-	Flowable find(T t , Map<String ,String > params, String url);
+	Flowable find(String url, Object[] objects);
+
+	void inject(T t);
 }

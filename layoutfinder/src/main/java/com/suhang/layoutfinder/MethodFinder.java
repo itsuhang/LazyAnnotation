@@ -1,6 +1,6 @@
 package com.suhang.layoutfinder;
 
-import android.util.Log;
+import android.util.ArrayMap;
 
 import java.util.Map;
 
@@ -11,16 +11,30 @@ import io.reactivex.Flowable;
  */
 
 public class MethodFinder {
-	@SuppressWarnings("unchecked")
-	public static Flowable find(Object o, Map<String, String> params, String url) {
+    private static Map<String, BaseMethodFinder> mFinderMap = new ArrayMap<>();
 
-//		Log.i("啊啊啊啊", o.getClass() + "   " + o.getClass().getCanonicalName());
-		try {
-			Class<?> aClass = Class.forName("com.suhang.sample.Method" + "$$Finder");
-			BaseMethodFinder finder = (BaseMethodFinder) aClass.newInstance();
-			return finder.find(o,params, url);
-		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-			throw new RuntimeException("MethodFinder:find()出错", e);
-		}
-	}
+    public static Flowable find(Class aClass, String url, Object ...objects) {
+        String packname = aClass.getCanonicalName();
+        BaseMethodFinder finder = mFinderMap.get(packname);
+        if (finder == null) {
+            throw new RuntimeException("MethodFinder:请先inject");
+        }
+        return finder.find(url,objects);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void inject(Object o, Class aClass) {
+        String packname = aClass.getCanonicalName();
+        try {
+            BaseMethodFinder finder = mFinderMap.get(packname);
+            if (finder == null) {
+                Class<?> tClass = Class.forName(packname + "$$Finder");
+                finder = (BaseMethodFinder) tClass.newInstance();
+                mFinderMap.put(packname, finder);
+            }
+            finder.inject(o);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("MethodFinder:find()出错", e);
+        }
+    }
 }
