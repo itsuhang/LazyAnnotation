@@ -19,5 +19,6 @@ public @interface GenSubComponent {
     String name();
     Class<?>[] modules() default {};
     Class<?>[] dependencies() default {};
-    Class<?>[] subcomponent() default {};
+    Class<?>[] subcomponents() default {};
+    Class<?>[] submodules() default {};
 }

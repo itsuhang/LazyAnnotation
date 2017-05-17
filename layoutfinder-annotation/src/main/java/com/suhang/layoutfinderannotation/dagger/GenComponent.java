@@ -18,6 +18,6 @@ import java.lang.annotation.Target;
 public @interface GenComponent {
     String name();
     Class<?>[] modules() default {};
-    Class<?>[] dependencies() default {};
-    Class<?>[] subcomponent() default {};
+    String[] dependencies() default {};
+    String[] subcomponents() default {};
 }

@@ -2,6 +2,8 @@ package com.suhang.layoutfindercompiler;
 
 import com.squareup.javapoet.ClassName;
 
+import javax.lang.model.element.TypeElement;
+
 public class TypeUtil {
     public static final ClassName ANDROID_VIEW = ClassName.get("android.view", "View");
     public static final ClassName BASEFINDER = ClassName.get("com.suhang.layoutfinder", "BaseFinder");

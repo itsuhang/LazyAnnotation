@@ -1,26 +1,36 @@
 package com.suhang.layoutfindercompiler.dagger;
 
 import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.suhang.layoutfinderannotation.dagger.GenInject;
+import com.suhang.layoutfinderannotation.dagger.Keys;
 import com.suhang.layoutfindercompiler.TypeUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.processing.Messager;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 
 /**
  * Created by 苏杭 on 2017/5/17 17:34.
  */
 
 public class ComponentClass {
-    private String mPackname;
     private ComponentProcessor.ComponentParam mParam;
+    private Messager mMessager;
 
-    public ComponentClass(String packname, ComponentProcessor.ComponentParam param) {
-        mPackname = packname;
+    public ComponentClass(Messager messager, ComponentProcessor.ComponentParam param) {
         mParam = param;
+        mMessager = messager;
     }
 
 
@@ -28,12 +38,19 @@ public class ComponentClass {
         AnnotationSpec.Builder builder = AnnotationSpec.builder(TypeUtil.COMPONENT);
         TypeElement[] modules = mParam.mModules;
         if (modules != null) {
+            String[] ms = new String[modules.length];
             if (modules.length == 1) {
+                ClassName className = ClassName.get(modules[0]);
+                String pack = className.packageName() + "." + className.simpleName();
+                ms[0] = pack;
                 builder.addMember("modules", "$T.class",modules[0]);
             } else {
                 CodeBlock.Builder codeBuilder = CodeBlock.builder();
                 for (int i = 0; i < modules.length; i++) {
                     TypeElement element = modules[i];
+                    ClassName className = ClassName.get(element);
+                    String pack = className.packageName() + "." + className.simpleName();
+                    ms[i] = pack;
                     if (i == 0) {
                         codeBuilder.add("{$T.class,", element);
                     } else if (i == modules.length - 1) {
@@ -67,23 +84,31 @@ public class ComponentClass {
         return builder.build();
     }
 
-    private MethodSpec getSubcomponent() {
-        TypeElement[] subcomponent = mParam.mSubcomponent;
-        if (subcomponent != null) {
-            for (TypeElement element : subcomponent) {
-                MethodSpec.methodBuilder("provider_"+element.getSimpleName())
-                        .addModifiers(Modifier.ABSTRACT,Modifier.PUBLIC);
-            }
-        }
-        return null;
-    }
+//    private List<MethodSpec> getSubcomponent() {
+//        List<MethodSpec> methodSpecs = new ArrayList<>();
+//        TypeElement[] subcomponents = mParam.mSubcomponents;
+//        TypeElement[] submodules = mParam.mSubmodules;
+//        if (subcomponents != null&&submodules!=null&&subcomponents.length==submodules.length) {
+//            for (int i = 0; i < subcomponents.length; i++) {
+//                TypeElement component = subcomponents[i];
+//                TypeElement module = submodules[i];
+//                methodSpecs.add(MethodSpec.methodBuilder("provider_" + component.getSimpleName())
+//                        .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
+//                        .addParameter(TypeName.get(module.asType()), "module").build());
+//            }
+//        }
+//        return methodSpecs;
+//    }
 
 
     public JavaFile gen() {
-        TypeSpec typeSpec = TypeSpec.interfaceBuilder(mParam.name)
+        AnnotationSpec build = AnnotationSpec.builder(GenInject.class).addMember("name", "$S", mParam.packname + "." + mParam.name).build();
+        TypeSpec.Builder builder = TypeSpec.interfaceBuilder(mParam.name)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(getComponent())
-                .build();
-        return JavaFile.builder(mPackname, typeSpec).build();
+                .addAnnotation(build);
+//        mMessager.printMessage(Diagnostic.Kind.ERROR,mPackname+mParam.name+"    "+className.packageName()+className.simpleName());
+//        Keys.genComponents.put(mPackname+"."+mParam.name,)
+        return JavaFile.builder(mParam.packname, builder.build()).build();
     }
 }

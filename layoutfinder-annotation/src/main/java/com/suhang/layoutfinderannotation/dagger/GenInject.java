@@ -11,9 +11,10 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Inherited
-@Target(ElementType.FIELD)
+@Target(ElementType.TYPE)
 /**
  * 生成dagger的Component的注解,参数为要生成的组件的名称
  */
 public @interface GenInject {
+	String name();
 }
