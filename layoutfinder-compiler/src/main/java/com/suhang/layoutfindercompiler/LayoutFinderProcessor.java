@@ -2,6 +2,7 @@ package com.suhang.layoutfindercompiler;
 
 import com.google.auto.service.AutoService;
 
+import com.squareup.javapoet.JavaFile;
 import com.suhang.layoutfinderannotation.BindLayout;
 import com.suhang.layoutfinderannotation.FindMethod;
 
@@ -106,7 +107,6 @@ public class LayoutFinderProcessor extends AbstractProcessor {
             for (MethodClass methodClass : mMethodClassMap.values()) {
                 methodClass.gen().writeTo(mFiler);
             }
-
         } catch (Exception e) {
             mMessager.printMessage(Diagnostic.Kind.ERROR, "出异常了" + e);
             return true;
