@@ -1,5 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'com.novoda.bintray-release'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

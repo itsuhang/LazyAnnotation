@@ -2,7 +2,6 @@ package com.suhang.layoutfindercompiler;
 
 import com.google.auto.service.AutoService;
 
-import com.squareup.javapoet.JavaFile;
 import com.suhang.layoutfinderannotation.BindLayout;
 import com.suhang.layoutfinderannotation.FindMethod;
 

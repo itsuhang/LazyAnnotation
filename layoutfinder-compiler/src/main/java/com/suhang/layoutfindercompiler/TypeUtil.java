@@ -11,4 +11,12 @@ public class TypeUtil {
     public static final ClassName GET = ClassName.get("retrofit2.http", "GET");
     public static final ClassName FLOWABLE = ClassName.get("io.reactivex", "Flowable");
     public static final ClassName LOG = ClassName.get("android.util", "Log");
+
+
+
+    //dagger
+    public static final ClassName COMPONENT = ClassName.get("dagger", "Component");
+    public static final ClassName SUBCOMPONENT = ClassName.get("dagger", "SubComponent");
+    public static final ClassName MODULE = ClassName.get("com.suhang.sample", "AppModule");
+    public static final ClassName ACTIVITY = ClassName.get("com.suhang.sample", "MainActivity");
 }
