@@ -8,8 +8,4 @@ import dagger.Provides;
  */
 @Module
 public class AppModule2 {
-    @Provides
-    AppMain providerBean() {
-        return new AppMain();
-    }
 }

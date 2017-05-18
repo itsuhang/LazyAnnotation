@@ -1,5 +1,7 @@
 package com.suhang.sample;
 
+import javax.inject.Singleton;
+
 import dagger.Module;
 import dagger.Provides;
 
@@ -8,6 +10,7 @@ import dagger.Provides;
  */
 @Module
 public class AppModule {
+    @Singleton
     @Provides
     AppMain providerBean() {
         return new AppMain();

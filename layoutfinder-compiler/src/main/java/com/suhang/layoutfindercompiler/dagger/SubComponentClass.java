@@ -14,24 +14,23 @@ import java.util.Map;
 
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 
 /**
  * Created by 苏杭 on 2017/5/17 17:34.
  */
 
-public class ComponentClass {
+public class SubComponentClass {
     private ComponentProcessor.ComponentParam mParam;
     private Messager mMessager;
 
-    public ComponentClass(Messager messager, ComponentProcessor.ComponentParam param) {
+    public SubComponentClass(Messager messager, ComponentProcessor.ComponentParam param) {
         mParam = param;
         mMessager = messager;
     }
 
 
     private AnnotationSpec getComponent() {
-        AnnotationSpec.Builder builder = AnnotationSpec.builder(TypeUtil.COMPONENT);
+        AnnotationSpec.Builder builder = AnnotationSpec.builder(TypeUtil.SUBCOMPONENT);
         List<ClassName> modules = mParam.mModules;
         if (modules != null) {
             String[] ms = new String[modules.size()];
@@ -84,7 +83,6 @@ public class ComponentClass {
         }
         return methodSpecs;
     }
-
 
     public JavaFile gen() {
         TypeSpec.Builder builder = TypeSpec.interfaceBuilder(mParam.name)

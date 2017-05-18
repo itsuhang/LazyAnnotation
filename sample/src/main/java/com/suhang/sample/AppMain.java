@@ -12,13 +12,13 @@ public class AppMain extends ErrorBean{
     public static final String METHOD = "getAppMain";
     private String total;
 
-    @Override
-    public String toString() {
-        return "AppMain{" +
-                "total='" + total + '\'' +
-                ", list=" + list +
-                '}';
-    }
+//    @Override
+//    public String toString() {
+//        return "AppMain{" +
+//                "total='" + total + '\'' +
+//                ", list=" + list +
+//                '}';
+//    }
 
     private List<ListEntity> list;
 

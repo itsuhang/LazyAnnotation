@@ -11,12 +11,9 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Inherited
-@Target(ElementType.TYPE)
+@Target({ElementType.METHOD})
 /**
  * 生成dagger的Component的注解,参数为要生成的组件的名称
  */
-public @interface GenSubComponent {
-    String name();
-    Class<?>[] modules() default {};
-    Class scope();
+public @interface GenSub {
 }

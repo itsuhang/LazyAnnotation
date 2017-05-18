@@ -18,7 +18,7 @@ public class TypeUtil {
 
     //dagger
     public static final ClassName COMPONENT = ClassName.get("dagger", "Component");
-    public static final ClassName SUBCOMPONENT = ClassName.get("dagger", "SubComponent");
+    public static final ClassName SUBCOMPONENT = ClassName.get("dagger", "Subcomponent");
     public static final ClassName MODULE = ClassName.get("com.suhang.sample", "AppModule");
     public static final ClassName ACTIVITY = ClassName.get("com.suhang.sample", "MainActivity");
 }
