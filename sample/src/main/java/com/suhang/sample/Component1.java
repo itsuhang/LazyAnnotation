@@ -8,6 +8,4 @@ import com.suhang.layoutfinderannotation.dagger.GenSubComponent;
  */
 @GenSubComponent(name = "AppComponent",modules = {AppModule2.class},scope = BaseScope.class)
 public interface Component1 {
-    @GenInject
-    void inject(MainActivity activity);
 }

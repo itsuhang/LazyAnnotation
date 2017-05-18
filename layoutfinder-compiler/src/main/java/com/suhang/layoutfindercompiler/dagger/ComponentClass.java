@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.annotation.processing.Messager;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 
 /**
  * Created by 苏杭 on 2017/5/17 17:34.
@@ -27,6 +28,10 @@ public class ComponentClass {
     public ComponentClass(Messager messager, ComponentProcessor.ComponentParam param) {
         mParam = param;
         mMessager = messager;
+    }
+
+    public ComponentProcessor.ComponentParam getParam() {
+        return mParam;
     }
 
 
@@ -62,6 +67,9 @@ public class ComponentClass {
 
     private List<MethodSpec> getSubcomponent() {
         List<MethodSpec> methodSpecs = new ArrayList<>();
+        if (mParam.mSubcomponents == null) {
+            return methodSpecs;
+        }
         for (Map.Entry<ClassName, List<ClassName>> entry : mParam.mSubcomponents.entrySet()) {
             ClassName key = entry.getKey();
             List<ClassName> value = entry.getValue();
@@ -77,6 +85,9 @@ public class ComponentClass {
 
     private List<MethodSpec> getInject() {
         List<MethodSpec> methodSpecs = new ArrayList<>();
+        if (mParam.mInjects == null) {
+            return methodSpecs;
+        }
         for (ClassName inject : mParam.mInjects) {
             MethodSpec.Builder builder = MethodSpec.methodBuilder("inject").addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
             builder.addParameter(inject, "param");

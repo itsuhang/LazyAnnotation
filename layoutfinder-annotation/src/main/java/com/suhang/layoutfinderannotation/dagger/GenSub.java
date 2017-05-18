@@ -16,4 +16,5 @@ import java.lang.annotation.Target;
  * 生成dagger的Component的注解,参数为要生成的组件的名称
  */
 public @interface GenSub {
+    String component();
 }
