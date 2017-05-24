@@ -9,15 +9,10 @@ import android.app.Application;
 
 public class App extends Application{
 
-    private BaseComponent mBaseComponent;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        mBaseComponent = DaggerBaseComponent.builder().appModule(new AppModule()).build();
     }
 
-    public BaseComponent getBaseComponent() {
-        return mBaseComponent;
-    }
 }

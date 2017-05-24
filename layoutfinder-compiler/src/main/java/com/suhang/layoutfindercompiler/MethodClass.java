@@ -80,11 +80,15 @@ public class MethodClass {
         for (Map.Entry<String, Param> entry : mPostParams.entrySet()) {
             buildGet.beginControlFlow("if($N.equals($S))", "url", entry.getValue().url);
             buildGet.addCode("$T fl = this.$N.$N(", TypeUtil.FLOWABLE, "o", entry.getKey());
-            for (int i = 0; i < entry.getValue().ls.size(); i++) {
+            int size = entry.getValue().ls.size();
+            if (size == 0) {
+                buildGet.addCode(");\n");
+            }
+            for (int i = 0; i < size; i++) {
                 TypeName name = entry.getValue().ls.get(i);
-                if (entry.getValue().ls.size() == 1) {
+                if (size == 1) {
                     buildGet.addCode("($T)$N[$L]);\n", name, "objects", i);
-                } else if (i == entry.getValue().ls.size() - 1) {
+                } else if (i == size - 1) {
                     buildGet.addCode("($T)$N[$L]);\n", name, "objects", i);
                 } else {
                     buildGet.addCode("($T)$N[$L],", name, "objects", i);
@@ -93,7 +97,7 @@ public class MethodClass {
             buildGet.addStatement("return $N", "fl");
             buildGet.endControlFlow();
         }
-        buildGet.addCode("}catch($T e){\nthrow new $T($S);\n}\n", TypeName.get(Exception.class), TypeName.get(RuntimeException.class), "MethodFinder.find()方法参数数量与Service中方法参数数量不一致,或参数顺序不正确");
+        buildGet.addCode("}catch($T e){\nthrow new $T($S+$N.toString());\n}\n", TypeName.get(Exception.class), TypeName.get(RuntimeException.class), "MethodFinder.find()方法参数数量与Service中方法参数数量不一致,或参数顺序不正确","e");
         buildGet.addStatement("return null");
         return buildGet.build();
     }
