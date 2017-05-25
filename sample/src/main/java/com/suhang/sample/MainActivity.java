@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.ArrayMap;
 import android.util.Log;
 
 import com.suhang.layoutfinder.ContextProvider;
@@ -25,8 +26,8 @@ public class MainActivity extends AppCompatActivity implements ContextProvider{
         Retrofit.Builder builder = new Retrofit.Builder();
         NetworkService networkService = builder.baseUrl("http://www.huanpeng.com").addCallAdapterFactory(RxJava2CallAdapterFactory.create()).addConverterFactory(GsonConverterFactory.create()).build().create(NetworkService.class);
         MethodFinder.inject(networkService,NetworkService.class);
-        MethodFinder.find(AppMain.URL);
-        Log.i("啊啊啊啊", MethodFinder.find(AppMain.URL)+"");
+//        MethodFinder.find(AppMain.URL,new ArrayMap<>());
+        Log.i("啊啊啊啊", MethodFinder.find(AppMain.URL,new ArrayMap<>())+"");
 
     }
 
