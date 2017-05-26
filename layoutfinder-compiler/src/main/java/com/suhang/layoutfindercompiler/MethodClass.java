@@ -53,12 +53,12 @@ public class MethodClass {
     }
 
     private void getGetParams() {
-        List<TypeName> ls = new ArrayList<>();
         for (Element element : mElement.getEnclosedElements()) {
             ExecutableElement executableElement = (ExecutableElement) element;
             for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
                 DeclaredType type = annotationMirror.getAnnotationType();
                 if (ClassName.get(type).equals(TypeUtil.GET)) {
+                    List<TypeName> ls = new ArrayList<>();
                     for (AnnotationValue annotationValue : annotationMirror.getElementValues().values()) {
                         for (VariableElement variableElement : executableElement.getParameters()) {
                             ls.add(TypeName.get(variableElement.asType()));

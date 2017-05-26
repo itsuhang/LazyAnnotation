@@ -9,4 +9,6 @@ import retrofit2.http.Path;
 public interface NetworkOtherService {
     @GET("history/content/{user}")
     Flowable<GithubBean> getGithubData(@Path("user") String path);
+    @GET("hstory/content/{user}")
+    Flowable<GithubBean> getAAAData(@Path("user") String path);
 }
