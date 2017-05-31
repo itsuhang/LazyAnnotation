@@ -2,6 +2,9 @@ package com.suhang.layoutfindercompiler;
 
 import com.squareup.javapoet.ClassName;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.lang.model.element.TypeElement;
 
 public class TypeUtil {
@@ -12,13 +15,18 @@ public class TypeUtil {
     public static final ClassName POST = ClassName.get("retrofit2.http", "POST");
     public static final ClassName GET = ClassName.get("retrofit2.http", "GET");
     public static final ClassName FLOWABLE = ClassName.get("io.reactivex", "Flowable");
-    public static final ClassName LOG = ClassName.get("android.util", "Log");
 
+    public static ArrayList<String> baseType = genBaseType();
 
-
-    //dagger
-    public static final ClassName COMPONENT = ClassName.get("dagger", "Component");
-    public static final ClassName SUBCOMPONENT = ClassName.get("dagger", "Subcomponent");
-    public static final ClassName MODULE = ClassName.get("com.suhang.sample", "AppModule");
-    public static final ClassName ACTIVITY = ClassName.get("com.suhang.sample", "MainActivity");
+    private static ArrayList<String> genBaseType() {
+        ArrayList<String> baseType = new ArrayList<>();
+        baseType.add(String.class.getCanonicalName());
+        baseType.add("int");
+        baseType.add("short");
+        baseType.add("float");
+        baseType.add("double");
+        baseType.add("long");
+        baseType.add("boolean");
+        return baseType;
+    }
 }
