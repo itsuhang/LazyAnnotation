@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity implements ContextProvider{
         MethodFinder.inject(networkService,NetworkService.class);
 //        MethodFinder.find(AppMain.URL,new ArrayMap<>());
         Log.i("啊啊啊啊", MethodFinder.find(AppMain.URL,new ArrayMap<>())+"");
-
     }
 
     @Override

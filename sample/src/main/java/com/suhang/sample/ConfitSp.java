@@ -10,8 +10,5 @@ public class ConfitSp {
     String uid;
     int a;
     float b;
-    short c;
-    long d;
-    double e;
     boolean f;
 }
