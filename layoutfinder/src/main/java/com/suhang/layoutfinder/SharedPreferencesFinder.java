@@ -14,12 +14,12 @@ public class SharedPreferencesFinder {
 		sContext = context;
 	}
 
-	public static String  toJson(Object o) {
+	public static <T> String  toJson(T t) {
 		Gson gson = new Gson();
-		return gson.toJson(o);
+		return gson.toJson(t);
 	}
 
-	public static Object fromJson(String json,Class aClass) {
+	public static <T> T fromJson(String json,Class<T> aClass) {
 		Gson gson = new Gson();
 		return gson.fromJson(json, aClass);
 	}

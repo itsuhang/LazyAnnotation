@@ -2,17 +2,24 @@
 <layout
         xmlns:android="http://schemas.android.com/apk/res/android"
 >
-<RelativeLayout
-
+<LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
       >
 
-    <TextView
+    <Button
+            android:id="@+id/button1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hello World!"
+            android:text="保存数据"
        />
+    <Button
+            android:id="@+id/button2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="读取数据"
+    />
 
-</RelativeLayout>
+</LinearLayout>
 </layout>

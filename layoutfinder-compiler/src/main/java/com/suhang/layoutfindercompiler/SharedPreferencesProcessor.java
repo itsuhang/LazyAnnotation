@@ -70,7 +70,7 @@ public class SharedPreferencesProcessor extends AbstractProcessor {
 				params.put(fieldName, type);
 			}
 		}
-		mSharedPreferencesClassMap.put(fullClassName, new SharedPreferencesClass(packname, typeElement.getSimpleName().toString()+"Helper",name, params,mMessager));
+		mSharedPreferencesClassMap.put(fullClassName, new SharedPreferencesClass(mElements,packname, typeElement.getSimpleName().toString()+"Helper",name, params,mMessager));
 	}
 
 

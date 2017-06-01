@@ -7,6 +7,7 @@ import com.suhang.layoutfinderannotation.SharedPreferences;
  */
 @SharedPreferences("config")
 public class ConfitSp {
+    AppMain appmain;
     String uid;
     int a;
     float b;
