@@ -2,24 +2,18 @@ package com.suhang.sample;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 
 import com.suhang.layoutfinder.ContextProvider;
-import com.suhang.layoutfinder.LayoutFinder;
 import com.suhang.layoutfinder.MethodFinder;
 
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements ContextProvider{
+public class MainActivity extends BaseActivity<Object> implements ContextProvider{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

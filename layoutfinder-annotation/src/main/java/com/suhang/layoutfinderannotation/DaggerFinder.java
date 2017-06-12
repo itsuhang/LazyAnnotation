@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Inherited
 @Target(ElementType.FIELD)
-public @interface BindLayout {
+public @interface DaggerFinder {
 }

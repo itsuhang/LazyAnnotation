@@ -13,13 +13,13 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
-public class LayoutClass {
+public class DaggerClass {
 
     public TypeElement mClassElement;
     public Elements mElements;
     public VariableElement mElement;
 
-    public LayoutClass(TypeElement classElement, Elements elements, Element element) {
+    public DaggerClass(TypeElement classElement, Elements elements, Element element) {
         this.mClassElement = classElement;
         this.mElements = elements;
         this.mElement = (VariableElement) element;

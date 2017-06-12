@@ -2,7 +2,7 @@ package com.suhang.layoutfindercompiler;
 
 import com.google.auto.service.AutoService;
 
-import com.suhang.layoutfinderannotation.BindLayout;
+import com.suhang.layoutfinderannotation.DaggerFinder;
 import com.suhang.layoutfinderannotation.FindMethod;
 
 import java.util.HashMap;
@@ -26,7 +26,6 @@ import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
 public class LayoutFinderProcessor extends AbstractProcessor {
-    private Map<String, LayoutClass> mLayoutClassMap = new HashMap<>();
     private Map<String, MethodClass> mMethodClassMap = new HashMap<>();
     Filer mFiler;
     Elements mElements;
@@ -43,44 +42,10 @@ public class LayoutFinderProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> types = new LinkedHashSet<>();
-        types.add(BindLayout.class.getCanonicalName());
         types.add(FindMethod.class.getCanonicalName());
         return types;
     }
 
-    private void processBindView(RoundEnvironment roundEnv) {
-        for (Element element : roundEnv.getElementsAnnotatedWith(BindLayout.class)) {
-            //得到该注解所在的类(若为抽象类则不生成Finder,而是查找该抽象类的子类)
-            TypeElement enclosingElement = (TypeElement) element.getEnclosingElement();
-            if (!enclosingElement.getModifiers().contains(Modifier.ABSTRACT)) {
-                getLayoutClass(enclosingElement, element);
-            } else {
-                //查找所有的根元素
-                for (Element e : roundEnv.getRootElements()) {
-                    if (e instanceof TypeElement) {
-                        TypeElement typeElement = (TypeElement) e;
-                        TypeMirror mirror = typeElement.getSuperclass();
-                        if (mirror instanceof DeclaredType) {
-                            DeclaredType superclass = (DeclaredType) mirror;
-                            //判断该元素的父类是否为enclosingElement
-                            if (superclass.asElement().equals(enclosingElement)) {
-                                getLayoutClass(typeElement, element);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void getLayoutClass(TypeElement parent, Element element) {
-        String fullClassName = parent.getQualifiedName().toString();
-        LayoutClass annotatedClass = mLayoutClassMap.get(fullClassName);
-        if (annotatedClass == null) {
-            annotatedClass = new LayoutClass(parent, mElements, element);
-            mLayoutClassMap.put(fullClassName, annotatedClass);
-        }
-    }
 
     private void getMethod(RoundEnvironment roundEnvironment) {
         for (Element element : roundEnvironment.getElementsAnnotatedWith(FindMethod.class)) {
@@ -93,15 +58,25 @@ public class LayoutFinderProcessor extends AbstractProcessor {
         }
     }
 
+    private boolean isSubType(Element e,Element parent) {
+        if (e instanceof TypeElement) {
+            TypeElement typeElement = (TypeElement) e;
+            TypeMirror mirror = typeElement.getSuperclass();
+            if (mirror instanceof DeclaredType) {
+                DeclaredType superclass = (DeclaredType) mirror;
+                //判断该元素的父类是否为enclosingElement
+                if (superclass.asElement().equals(parent)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnvironment) {
         try {
-            mLayoutClassMap.clear();
             mMethodClassMap.clear();
-            processBindView(roundEnvironment);
-            for (LayoutClass layoutClass : mLayoutClassMap.values()) {
-                layoutClass.gen().writeTo(mFiler);
-            }
             getMethod(roundEnvironment);
             for (MethodClass methodClass : mMethodClassMap.values()) {
                 methodClass.gen().writeTo(mFiler);
