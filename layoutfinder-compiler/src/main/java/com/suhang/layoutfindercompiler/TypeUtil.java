@@ -20,6 +20,9 @@ public class TypeUtil {
 	public static final ClassName POST = ClassName.get("retrofit2.http", "POST");
 	public static final ClassName GET = ClassName.get("retrofit2.http", "GET");
 	public static final ClassName FLOWABLE = ClassName.get("io.reactivex", "Flowable");
+	public static final ClassName RETROFIT = ClassName.get("retrofit2", "Retrofit");
+	public static final ClassName RXJAVA_ADAPTER = ClassName.get("retrofit2.adapter.rxjava2", "RxJava2CallAdapterFactory");
+	public static final ClassName STRING_CONVERT = ClassName.get("retrofit2.converter.scalars", "ScalarsConverterFactory");
 	public static final ClassName SHAREPREFERENCES = ClassName.get("android.content", "SharedPreferences");
 
 	public static Map<String,TypeName> baseType = genBaseType();

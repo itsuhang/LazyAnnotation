@@ -45,5 +45,6 @@ dependencies {
     compile 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
     compile "com.google.dagger:dagger:$DAGGER_VERSION"
+    compile 'com.squareup.retrofit2:converter-scalars:2.3.0'
     annotationProcessor "com.google.dagger:dagger-compiler:$DAGGER_VERSION"
 }

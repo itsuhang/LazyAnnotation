@@ -25,7 +25,7 @@ import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 
 @AutoService(Processor.class)
-public class LayoutFinderProcessor extends AbstractProcessor {
+public class MethodProcessor extends AbstractProcessor {
     private Map<String, MethodClass> mMethodClassMap = new HashMap<>();
     Filer mFiler;
     Elements mElements;

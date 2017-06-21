@@ -18,11 +18,11 @@ import retrofit2.http.POST;
 public interface NetworkService {
     @POST(AppMain.URL)
     @FormUrlEncoded
-    @ToString
+    @ToString("http://www.huanpeng.com")
     Flowable<AppMain> getAppMain(@FieldMap Map<String, String> params);
 
     @POST(AppMain.URL1)
     @FormUrlEncoded
-    @ToString
+    @ToString("http://dev.huanpeng.com")
     Flowable<AppMain> getApp(@FieldMap Map<String, String> params);
 }
