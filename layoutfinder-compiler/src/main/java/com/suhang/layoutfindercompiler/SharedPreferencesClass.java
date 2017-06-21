@@ -1,5 +1,6 @@
 package com.suhang.layoutfindercompiler;
 
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
@@ -167,6 +168,7 @@ public class SharedPreferencesClass {
     public JavaFile gen() {
         MethodSpec init = getInit();
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)
+                .addModifiers(Modifier.PUBLIC)
                 .addField(TypeUtil.SHAREPREFERENCES, "mSp", Modifier.PRIVATE, Modifier.STATIC)
                 .addMethod(init);
         for (MethodSpec spec : getPutType(init)) {

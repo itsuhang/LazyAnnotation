@@ -10,7 +10,7 @@ publish {
     userOrg = 'suhang'
     groupId = 'com.suhang'
     artifactId = 'lazyannotation_annotation'
-    publishVersion = '1.0.9'
+    publishVersion = $version
     desc = 'LazyAnnotation'
     website = 'https://github.com/lightofrain/LazyAnnotation'
 }

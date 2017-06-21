@@ -1,6 +1,7 @@
 package com.suhang.sample;
 
 import com.suhang.layoutfinderannotation.FindMethod;
+import com.suhang.layoutfinderannotation.ToString;
 
 import java.util.Map;
 
@@ -17,9 +18,11 @@ import retrofit2.http.POST;
 public interface NetworkService {
     @POST(AppMain.URL)
     @FormUrlEncoded
+    @ToString
     Flowable<AppMain> getAppMain(@FieldMap Map<String, String> params);
 
     @POST(AppMain.URL1)
     @FormUrlEncoded
+    @ToString
     Flowable<AppMain> getApp(@FieldMap Map<String, String> params);
 }
