@@ -26,7 +26,8 @@ public class TypeUtil {
 	public static final ClassName SHAREPREFERENCES = ClassName.get("android.content", "SharedPreferences");
 	public static final ClassName COMPONENT = ClassName.get("dagger", "Component");
 	public static final ClassName SUBCOMPONENT = ClassName.get("dagger", "Subcomponent");
-	public static final ClassName SUBCOMPONENTP_BUILDER = ClassName.get("dagger", "Subcomponent.Builder");
+	public static final ClassName SUBCOMPONENTP_BUILDER = ClassName.get("dagger", "Subcomponent","Builder");
+	public static final ClassName COMPONENTP_BUILDER = ClassName.get("dagger", "Component","Builder");
 	public static final ClassName MEMBERSINJECTOR = ClassName.get("dagger", "MembersInjector");
 
 	public static Map<String,TypeName> baseType = genBaseType();

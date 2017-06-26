@@ -12,7 +12,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Inherited
 @Target(ElementType.TYPE)
-public @interface GenComponent {
+public @interface GenSubComponent {
     Class[] modules() default {};
-    Class scope();
+    Class scope() default Object.class;
+
+    /**
+     * 标记,当生成的父组件和子组件的tag一致时,在父组件中将子组件提供出来
+     * @return
+     */
+    int tag() default 0;
 }

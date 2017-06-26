@@ -5,7 +5,6 @@ import java.util.List;
 /**
  * Created by 苏杭 on 2017/4/24 16:19.
  */
-
 public class AppMain extends ErrorBean{
     public static final String URL = "/api/other/indexApiForApp.php";
     public static final String URL1 = "/api/other/indexApiForApp1.php";

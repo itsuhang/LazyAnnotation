@@ -13,5 +13,5 @@ import javax.inject.Scope;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.TYPE,ElementType.METHOD,ElementType.FIELD})
 @Scope
-public @interface ActivityScope {
+public @interface BaseScope {
 }
