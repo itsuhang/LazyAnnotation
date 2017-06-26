@@ -24,6 +24,10 @@ public class TypeUtil {
 	public static final ClassName RXJAVA_ADAPTER = ClassName.get("retrofit2.adapter.rxjava2", "RxJava2CallAdapterFactory");
 	public static final ClassName STRING_CONVERT = ClassName.get("retrofit2.converter.scalars", "ScalarsConverterFactory");
 	public static final ClassName SHAREPREFERENCES = ClassName.get("android.content", "SharedPreferences");
+	public static final ClassName COMPONENT = ClassName.get("dagger", "Component");
+	public static final ClassName SUBCOMPONENT = ClassName.get("dagger", "Subcomponent");
+	public static final ClassName SUBCOMPONENTP_BUILDER = ClassName.get("dagger", "Subcomponent.Builder");
+	public static final ClassName MEMBERSINJECTOR = ClassName.get("dagger", "MembersInjector");
 
 	public static Map<String,TypeName> baseType = genBaseType();
 

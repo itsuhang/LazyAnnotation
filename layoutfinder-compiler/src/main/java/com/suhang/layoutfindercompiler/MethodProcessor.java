@@ -2,7 +2,6 @@ package com.suhang.layoutfindercompiler;
 
 import com.google.auto.service.AutoService;
 
-import com.suhang.layoutfinderannotation.DaggerFinder;
 import com.suhang.layoutfinderannotation.FindMethod;
 
 import java.util.HashMap;
@@ -17,7 +16,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;

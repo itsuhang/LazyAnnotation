@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.CLASS)
 @Inherited
-@Target(ElementType.FIELD)
-public @interface DaggerFinder {
+@Target(ElementType.TYPE)
+public @interface GenComponent {
+    Class[] modules() default {};
+    Class scope();
 }
