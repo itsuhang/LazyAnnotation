@@ -15,9 +15,6 @@ import dagger.Provides;
 public class BaseModule {
     private  Activity activity;
 
-    public BaseModule() {
-    }
-
     public BaseModule(Activity activity) {
         this.activity = activity;
     }
