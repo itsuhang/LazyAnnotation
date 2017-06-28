@@ -7,7 +7,7 @@ import com.suhang.sample.dagger.module.SpashModule;
 
 import javax.inject.Inject;
 
-@GenSubComponent(modules = SpashModule.class,tag = 10)
+@GenSubComponent(modules = SpashModule.class,tag = 12)
 public class SplashActivity extends BaseActivity {
     @Inject
     Cat mCat;
@@ -15,7 +15,7 @@ public class SplashActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        getBaseComponent().providerSplashActivityComponent().setModule(new SpashModule()).build().injectMembers(this);
+        DaggerHelper.getInstance().getSplashActivityComponent(this);
         mCat.introduce();
     }
 }

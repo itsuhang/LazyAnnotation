@@ -8,12 +8,11 @@ import android.view.View;
 
 import com.suhang.layoutfinder.ContextProvider;
 import com.suhang.layoutfinderannotation.GenSubComponent;
-import com.suhang.sample.dagger.BaseScope;
 import com.suhang.sample.dagger.module.ActivityModule;
 
 import javax.inject.Inject;
 
-@GenSubComponent(modules = ActivityModule.class, tag = 10)
+@GenSubComponent(modules = ActivityModule.class, tag = 12)
 public class MainActivity extends BaseActivity implements ContextProvider {
 	@Inject
 	Dog cat;
@@ -33,8 +32,7 @@ public class MainActivity extends BaseActivity implements ContextProvider {
 //                Log.i("啊啊啊啊", o.toString());
 //            }
 //        });
-
-		getBaseComponent().providerMainActivityComponent().setModule(new ActivityModule(this)).build().injectMembers(this);
+		DaggerHelper.getInstance().getMainActivityComponent(this, this);
 		cat.introduce();
 		findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
 			@Override

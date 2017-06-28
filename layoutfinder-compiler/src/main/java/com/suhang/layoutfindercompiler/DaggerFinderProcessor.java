@@ -12,9 +12,8 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.suhang.layoutfinderannotation.GenDaggerHelper;
-import com.suhang.layoutfinderannotation.GenParentComponent;
-import com.suhang.layoutfinderannotation.GenRootComponent;
 import com.suhang.layoutfinderannotation.GenSubComponent;
+import com.suhang.layoutfinderannotation.GenRootComponent;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,8 +54,11 @@ public class DaggerFinderProcessor extends AbstractProcessor {
     Messager mMessager;
     private Types mTypeUtils;
     private Map<String, JavaFile> mMap = new HashMap<>();
-    private Map<Integer, List<Param>> groups = new HashMap<>();
+    private Map<Integer, List<Param>> parents = new HashMap<>();
+    private Map<Integer, List<Param>> roots = new HashMap<>();
     private Map<String, List<TypeName>> modules = new HashMap<>();
+    private List<FieldSpec> fieldSpecs = new ArrayList<>();
+    private List<MethodSpec> methodSpecs = new ArrayList<>();
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
@@ -70,6 +72,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         Set<String> types = new LinkedHashSet<>();
+        types.add(GenRootComponent.class.getCanonicalName());
         types.add(GenSubComponent.class.getCanonicalName());
         return types;
     }
@@ -107,40 +110,10 @@ public class DaggerFinderProcessor extends AbstractProcessor {
     }
 
     private int count = 0;
-    private MethodSpec genHelperContent(List<Param> root, List<Param> parent, List<Param> child) {
-        if (root.size() == 1) {
-            Param rootParam = root.get(0);
-            ClassName className = ClassName.get(rootParam.packname, "Dagger" + rootParam.className);
-            ClassName rootComponent = ClassName.get(rootParam.packname, rootParam.className);
-            FieldSpec rootField = FieldSpec.builder(rootComponent, rootParam.className.toLowerCase(), Modifier.PUBLIC).build();
-            helperTypeBuilder.addField(rootField);
-            MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + rootParam.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
-            rootMethodBuilder.addParameter(TypeName.get(rootParam.element.asType()), "target");
-            count = 0;
-            CodeBlock.Builder builder = CodeBlock.builder().add("$N = $T.builder().", rootField, className);
-            if (rootParam.modules.size() == 1) {
-                TypeName module = rootParam.modules.get(0);
-                genMethodBody(builder, module, rootMethodBuilder);
-            } else if (rootParam.modules.size() > 1) {
-                for (int i = 0; i < rootParam.modules.size(); i++) {
-                    TypeName module = rootParam.modules.get(i);
-                    genMethodBody(builder, module, rootMethodBuilder);
-                    if (i != rootParam.modules.size() - 1) {
-                        builder.add(".");
-                    }
-                }
-            }
-            builder.add(".build();\n");
-            builder.add("$N.injectMembers($N);\n", rootField, "target");
-            builder.add("return $N;\n", rootField);
-            return rootMethodBuilder.addCode(builder.build()).build();
-        }
-        return null;
-    }
+
 
     private void genMethodBody(CodeBlock.Builder builder, TypeName module, MethodSpec.Builder rootMethodBuilder) {
         builder = builder.add("setModule(new $T", module);
-//        mMessager.printMessage(Diagnostic.Kind.ERROR, builder.build().toString());
         List<TypeName> names = modules.get(module.toString());
         if (names != null && names.size() > 0) {
             if (names.size() == 1) {
@@ -169,60 +142,70 @@ public class DaggerFinderProcessor extends AbstractProcessor {
 
     private TypeSpec.Builder genHelperTypeBuilder() {
         ClassName className = ClassName.get(helper_packname, HELPER_CLASS);
-
-        FieldSpec instance = FieldSpec.builder(className, "instance").addModifiers(Modifier.PRIVATE, Modifier.STATIC).build();
         MethodSpec construct = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE).build();
-
         FieldSpec instance1 = FieldSpec.builder(className, "INSTANCE", Modifier.STATIC, Modifier.PRIVATE, Modifier.FINAL).initializer("new $T()", className).build();
         TypeSpec holder = TypeSpec.classBuilder("Holder").addModifiers(Modifier.STATIC, Modifier.PRIVATE).addField(instance1).build();
         MethodSpec getInstance = MethodSpec.methodBuilder("getInstance").addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                 .returns(className)
                 .addStatement("return $N.$N", holder, instance1)
                 .build();
-        return TypeSpec.classBuilder(HELPER_CLASS).addModifiers(Modifier.PUBLIC).addType(holder).addMethod(getInstance).addMethod(construct).addField(instance);
+        return TypeSpec.classBuilder(HELPER_CLASS).addModifiers(Modifier.PUBLIC).addType(holder).addMethod(getInstance).addMethod(construct);
     }
 
-    /**
-     * 解析注解
-     *
-     * @param roundEnv
-     * @return
-     */
-    private void processDagger(RoundEnvironment roundEnv) {
+//    /**
+//     * 解析注解
+//     *
+//     * @param roundEnv
+//     * @return
+//     */
+//    private void processDagger(RoundEnvironment roundEnv) {
+//        for (Element element : roundEnv.getElementsAnnotatedWith(GenSubComponent.class)) {
+//            String packname = mElements.getPackageOf(element).getQualifiedName().toString();
+//            TypeElement typeElement = (TypeElement) element;
+//            String className = typeElement.getSimpleName().toString() + "Component";
+//            GenSubComponent genSubComponent = element.getAnnotation(GenSubComponent.class);
+//            int tag = genSubComponent.tag();
+//            TypeElement scope = getScope(genSubComponent);
+//            List<TypeName> modules = getModules(genSubComponent);
+//            List<Param> params = subs.get(tag);
+//            if (params == null) {
+//                params = new ArrayList<>();
+//            }
+//            Param param = new Param(scope, modules, packname, className, typeElement, null, 0);
+//            params.add(param);
+//            subs.put(tag, params);
+//            genDaggerChild(param);
+//        }
+//    }
+
+    private void processDaggerParent(RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getElementsAnnotatedWith(GenSubComponent.class)) {
             String packname = mElements.getPackageOf(element).getQualifiedName().toString();
             TypeElement typeElement = (TypeElement) element;
             String className = typeElement.getSimpleName().toString() + "Component";
             GenSubComponent genSubComponent = element.getAnnotation(GenSubComponent.class);
             int tag = genSubComponent.tag();
+            int childTag = genSubComponent.childTag();
             TypeElement scope = getScope(genSubComponent);
             List<TypeName> modules = getModules(genSubComponent);
-            List<Param> params = groups.get(tag);
+            List<Param> params = parents.get(tag);
             if (params == null) {
                 params = new ArrayList<>();
             }
-            Param param = new Param(scope, modules, packname, className, typeElement, Param.CHILD, null);
+            Param param;
+            if (childTag == 0) {
+                param = new Param(scope, modules, packname, className, typeElement, null, childTag);
+            } else {
+                param = new Param(scope, modules, packname, className, typeElement, new ArrayList<Param>(), childTag);
+            }
             params.add(param);
-            groups.put(tag, params);
+            parents.put(tag, params);
         }
-    }
-
-    private void processDaggerParent(RoundEnvironment roundEnv) {
-        for (Element element : roundEnv.getElementsAnnotatedWith(GenParentComponent.class)) {
-            String packname = mElements.getPackageOf(element).getQualifiedName().toString();
-            TypeElement typeElement = (TypeElement) element;
-            String className = typeElement.getSimpleName().toString() + "Component";
-            GenParentComponent genSubComponent = element.getAnnotation(GenParentComponent.class);
-            int tag = genSubComponent.tag();
-            TypeElement scope = getScope(genSubComponent);
-            List<TypeName> modules = getModules(genSubComponent);
-            List<Param> params = groups.get(tag);
-            if (params == null) {
-                params = new ArrayList<>();
+        for (List<Param> params : parents.values()) {
+            for (Param param : params) {
+                param.childs = parents.get(param.childTag);
+                genDaggerParent(param);
             }
-            Param param = new Param(scope, modules, packname, className, typeElement, Param.PARENT, new HashMap<String, ClassName>());
-            params.add(param);
-            groups.put(tag, params);
         }
     }
 
@@ -233,30 +216,19 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             String className = typeElement.getSimpleName().toString() + "Component";
             GenRootComponent genSubComponent = element.getAnnotation(GenRootComponent.class);
             int tag = genSubComponent.tag();
+            int childTag = genSubComponent.childTag();
             TypeElement scope = getScope(genSubComponent);
             List<TypeName> modules = getModules(genSubComponent);
-            List<Param> params = groups.get(tag);
+            List<Param> params = roots.get(tag);
             if (params == null) {
                 params = new ArrayList<>();
             }
-            Param param = new Param(scope, modules, packname, className, typeElement, Param.ROOT, new HashMap<String, ClassName>());
+            List<Param> parent = parents.get(childTag);
+            Param param = new Param(scope, modules, packname, className, typeElement, parent, childTag);
             params.add(param);
-            groups.put(tag, params);
+            roots.put(tag, params);
+            genDaggerRoot(param);
         }
-    }
-
-    /**
-     * 生成dagger子组件
-     *
-     * @param param
-     * @return
-     */
-    private void genDaggerChild(Param param) {
-        TypeSpec.Builder classBuilder = getClassBuilder(param, false);
-        if (!TypeName.get(param.scope.asType()).equals(TypeName.OBJECT)) {
-            classBuilder.addAnnotation(ClassName.get(param.scope));
-        }
-        mMap.put(param.className, JavaFile.builder(param.packname, classBuilder.build()).build());
     }
 
     /**
@@ -270,9 +242,12 @@ public class DaggerFinderProcessor extends AbstractProcessor {
         if (!TypeName.get(param.scope.asType()).equals(TypeName.OBJECT)) {
             classBuilder.addAnnotation(ClassName.get(param.scope));
         }
-        for (Map.Entry<String, ClassName> entry : param.childs.entrySet()) {
-            classBuilder.addMethod(MethodSpec.methodBuilder("provider" + entry.getKey()).addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                    .returns(entry.getValue()).build());
+        if (param.childs != null && param.childs.size() > 0) {
+            Map<String, ClassName> childs = getClassName(param.childs);
+            for (Map.Entry<String, ClassName> entry : childs.entrySet()) {
+                classBuilder.addMethod(MethodSpec.methodBuilder("provider" + entry.getKey()).addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .returns(entry.getValue()).build());
+            }
         }
         mMap.put(param.className, JavaFile.builder(param.packname, classBuilder.build()).build());
     }
@@ -288,9 +263,12 @@ public class DaggerFinderProcessor extends AbstractProcessor {
         if (!TypeName.get(param.scope.asType()).equals(TypeName.OBJECT)) {
             classBuilder.addAnnotation(ClassName.get(param.scope));
         }
-        for (Map.Entry<String, ClassName> entry : param.childs.entrySet()) {
-            classBuilder.addMethod(MethodSpec.methodBuilder("provider" + entry.getKey()).addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                    .returns(entry.getValue()).build());
+        if (param.childs != null && param.childs.size() > 0) {
+            Map<String, ClassName> childs = getClassName(param.childs);
+            for (Map.Entry<String, ClassName> entry : childs.entrySet()) {
+                classBuilder.addMethod(MethodSpec.methodBuilder("provider" + entry.getKey()).addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .returns(entry.getValue()).build());
+            }
         }
         mMap.put(param.className, JavaFile.builder(param.packname, classBuilder.build()).build());
     }
@@ -328,54 +306,97 @@ public class DaggerFinderProcessor extends AbstractProcessor {
     }
 
 
-    private void getGroup() {
-        for (List<Param> params : groups.values()) {
-            List<Param> child = new ArrayList<>();
-            List<Param> parent = new ArrayList<>();
-            List<Param> root = new ArrayList<>();
-            for (Param param : params) {
-                switch (param.type) {
-                    case Param.CHILD:
-                        child.add(param);
-                        break;
-                    case Param.PARENT:
-                        parent.add(param);
-                        break;
-                    case Param.ROOT:
-                        root.add(param);
-                        break;
-                }
-            }
-            if (root.size() > 1) {
-                mMessager.printMessage(Diagnostic.Kind.ERROR, "同一个Tag类型只能有一个Root组件");
-            } else if (root.size() == 1 && parent.size() == 1) {
-                root.get(0).childs = getClassName(parent);
-            } else if (root.size() == 1 && parent.size() == 0) {
-                root.get(0).childs = getClassName(child);
-            }
-
-            if (parent.size() > 1) {
-                mMessager.printMessage(Diagnostic.Kind.ERROR, "同一个Tag类型只能有一个父组件");
-            } else if (parent.size() == 1) {
-                parent.get(0).childs = getClassName(child);
-            }
-
-            for (Param param : child) {
-                genDaggerChild(param);
-            }
-
-            for (Param param : parent) {
-                genDaggerParent(param);
-            }
-
-            for (Param param : root) {
-                genDaggerRoot(param);
-            }
-            MethodSpec methodSpec = genHelperContent(root, parent, child);
+    private void getHelper() {
+        getRootHelper();
+        for (MethodSpec methodSpec : methodSpecs) {
             helperTypeBuilder.addMethod(methodSpec);
+        }
+        for (FieldSpec fieldSpec : fieldSpecs) {
+            helperTypeBuilder.addField(fieldSpec);
         }
     }
 
+    private void getRootHelper() {
+        for (List<Param> params : roots.values()) {
+            for (Param rootParam : params) {
+                ClassName className = ClassName.get(rootParam.packname, "Dagger" + rootParam.className);
+                ClassName rootComponent = ClassName.get(rootParam.packname, rootParam.className);
+                FieldSpec rootField = FieldSpec.builder(rootComponent, rootParam.className.toLowerCase(), Modifier.PUBLIC).build();
+                MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + rootParam.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
+                rootMethodBuilder.addParameter(TypeName.get(rootParam.element.asType()), "target");
+                count = 0;
+                CodeBlock.Builder builder = CodeBlock.builder();
+                if (rootParam.childs != null && rootParam.childs.size() > 0) {
+                    fieldSpecs.add(rootField);
+                    builder = builder.add("$N = $T.builder().", rootField, className);
+                } else {
+                    builder = builder.add("$T $N = $T.builder().", rootComponent, rootField, className);
+                }
+                if (rootParam.modules.size() == 1) {
+                    TypeName module = rootParam.modules.get(0);
+                    genMethodBody(builder, module, rootMethodBuilder);
+                } else if (rootParam.modules.size() > 1) {
+                    for (int i = 0; i < rootParam.modules.size(); i++) {
+                        TypeName module = rootParam.modules.get(i);
+                        genMethodBody(builder, module, rootMethodBuilder);
+                        if (i != rootParam.modules.size() - 1) {
+                            builder.add(".");
+                        }
+                    }
+                }
+                builder.add(".build();\n");
+                builder.add("$N.injectMembers($N);\n", rootField, "target");
+                builder.add("return $N;\n", rootField);
+                methodSpecs.add(rootMethodBuilder.addCode(builder.build()).build());
+                if (rootParam.childs != null && rootParam.childs.size() > 0) {
+                    getChildHelper(rootField, rootParam.childs);
+                }
+            }
+        }
+    }
+
+    private void getChildHelper(FieldSpec parent, List<Param> childs) {
+        for (Param child : childs) {
+            ClassName rootComponent = ClassName.get(child.packname, child.className);
+            FieldSpec rootField = FieldSpec.builder(rootComponent, child.className.toLowerCase(), Modifier.PRIVATE).build();
+            MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + child.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
+            rootMethodBuilder.addParameter(TypeName.get(child.element.asType()), "target");
+            count = 0;
+            CodeBlock.Builder builder = CodeBlock.builder();
+            if (child.childs != null && child.childs.size() > 0) {
+                fieldSpecs.add(rootField);
+                builder = builder.add("$N = $N.$N().", rootField, parent, "provider" + child.className);
+            } else {
+                builder = builder.add("$T $N = $N.$N().", rootComponent, rootField, parent, "provider" + child.className);
+            }
+            if (child.modules.size() == 1) {
+                TypeName module = child.modules.get(0);
+                genMethodBody(builder, module, rootMethodBuilder);
+            } else if (child.modules.size() > 1) {
+                for (int i = 0; i < child.modules.size(); i++) {
+                    TypeName module = child.modules.get(i);
+                    genMethodBody(builder, module, rootMethodBuilder);
+                    if (i != child.modules.size() - 1) {
+                        builder.add(".");
+                    }
+                }
+            }
+            builder.add(".build();\n");
+            builder.add("$N.injectMembers($N);\n", rootField, "target");
+            builder.add("return $N;\n", rootField);
+            methodSpecs.add(rootMethodBuilder.addCode(builder.build()).build());
+            if (child.childs != null && child.childs.size() > 0) {
+                getChildHelper(rootField, child.childs);
+            }
+        }
+    }
+
+    /**
+     * 得到孩子的ClassName
+     *
+     * @param params
+     * @return
+     */
     private Map<String, ClassName> getClassName(List<Param> params) {
         Map<String, ClassName> ls = new HashMap<>();
         for (Param param : params) {
@@ -389,23 +410,23 @@ public class DaggerFinderProcessor extends AbstractProcessor {
         public static final int PARENT = 101;
         public static final int CHILD = 102;
 
-        Param(TypeElement scope, List<TypeName> modules, String packname, String className, TypeElement element, int type, Map<String, ClassName> childs) {
+        Param(TypeElement scope, List<TypeName> modules, String packname, String className, TypeElement element, List<Param> childs, int childTag) {
             this.scope = scope;
             this.modules = modules;
             this.packname = packname;
             this.className = className;
             this.element = element;
-            this.type = type;
             this.childs = childs;
+            this.childTag = childTag;
         }
 
-        int type;
         TypeElement scope;
         List<TypeName> modules;
         String packname;
         String className;
         TypeElement element;
-        Map<String, ClassName> childs;
+        List<Param> childs;
+        int childTag;
     }
 
 
@@ -433,40 +454,6 @@ public class DaggerFinderProcessor extends AbstractProcessor {
     private List<TypeName> getModules(GenSubComponent genSubComponent) {
         try {
             genSubComponent.modules();
-        } catch (MirroredTypesException e) {
-            List<TypeName> names = new ArrayList<>();
-            for (TypeMirror typeMirror : e.getTypeMirrors()) {
-                names.add(TypeName.get(typeMirror));
-            }
-            return names;
-        }
-        return null;
-    }
-
-    /**
-     * 获取域
-     *
-     * @param genParentComponent
-     * @return
-     */
-    private TypeElement getScope(GenParentComponent genParentComponent) {
-        try {
-            genParentComponent.scope();
-        } catch (MirroredTypeException e) {
-            return (TypeElement) mTypeUtils.asElement(e.getTypeMirror());
-        }
-        return null;
-    }
-
-    /**
-     * 获取Module
-     *
-     * @param genParentComponent
-     * @return
-     */
-    private List<TypeName> getModules(GenParentComponent genParentComponent) {
-        try {
-            genParentComponent.modules();
         } catch (MirroredTypesException e) {
             List<TypeName> names = new ArrayList<>();
             for (TypeMirror typeMirror : e.getTypeMirrors()) {
@@ -513,14 +500,16 @@ public class DaggerFinderProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         mMap.clear();
-        groups.clear();
+        parents.clear();
+        roots.clear();
         modules.clear();
+        methodSpecs.clear();
+        fieldSpecs.clear();
         proccessDaggerHelper(roundEnv);
-        processDagger(roundEnv);
         processDaggerParent(roundEnv);
         processDaggerRoot(roundEnv);
         proccessDaggerModule(roundEnv);
-        getGroup();
+        getHelper();
         if (helperTypeBuilder != null) {
             mMap.put(HELPER_CLASS, JavaFile.builder(helper_packname, helperTypeBuilder.build()).build());
             helperTypeBuilder = null;
