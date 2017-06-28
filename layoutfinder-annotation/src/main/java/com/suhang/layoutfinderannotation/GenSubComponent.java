@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 public @interface GenSubComponent {
     Class[] modules() default {};
     Class scope() default Object.class;
-
+    boolean shouldInject() default true;
     /**
      * 标记,当父组件的childTag和子组件的tag一致时,在父组件中将子组件提供出来
      * @return

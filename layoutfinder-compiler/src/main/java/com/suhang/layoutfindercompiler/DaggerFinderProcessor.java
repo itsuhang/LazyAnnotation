@@ -186,6 +186,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             GenSubComponent genSubComponent = element.getAnnotation(GenSubComponent.class);
             int tag = genSubComponent.tag();
             int childTag = genSubComponent.childTag();
+            boolean shouldInject = genSubComponent.shouldInject();
             TypeElement scope = getScope(genSubComponent);
             List<TypeName> modules = getModules(genSubComponent);
             List<Param> params = parents.get(tag);
@@ -194,9 +195,9 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             }
             Param param;
             if (childTag == 0) {
-                param = new Param(scope, modules, packname, className, typeElement, null, childTag);
+                param = new Param(scope, modules, packname, className, typeElement, null, childTag, shouldInject);
             } else {
-                param = new Param(scope, modules, packname, className, typeElement, new ArrayList<Param>(), childTag);
+                param = new Param(scope, modules, packname, className, typeElement, new ArrayList<Param>(), childTag, shouldInject);
             }
             params.add(param);
             parents.put(tag, params);
@@ -217,6 +218,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             GenRootComponent genSubComponent = element.getAnnotation(GenRootComponent.class);
             int tag = genSubComponent.tag();
             int childTag = genSubComponent.childTag();
+            boolean shouldInject = genSubComponent.shouldInject();
             TypeElement scope = getScope(genSubComponent);
             List<TypeName> modules = getModules(genSubComponent);
             List<Param> params = roots.get(tag);
@@ -224,7 +226,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                 params = new ArrayList<>();
             }
             List<Param> parent = parents.get(childTag);
-            Param param = new Param(scope, modules, packname, className, typeElement, parent, childTag);
+            Param param = new Param(scope, modules, packname, className, typeElement, parent, childTag, shouldInject);
             params.add(param);
             roots.put(tag, params);
             genDaggerRoot(param);
@@ -323,7 +325,9 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                 ClassName rootComponent = ClassName.get(rootParam.packname, rootParam.className);
                 FieldSpec rootField = FieldSpec.builder(rootComponent, rootParam.className.toLowerCase(), Modifier.PUBLIC).build();
                 MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + rootParam.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
-                rootMethodBuilder.addParameter(TypeName.get(rootParam.element.asType()), "target");
+                if (rootParam.shouldInject) {
+                    rootMethodBuilder.addParameter(TypeName.get(rootParam.element.asType()), "target");
+                }
                 count = 0;
                 CodeBlock.Builder builder = CodeBlock.builder();
                 if (rootParam.childs != null && rootParam.childs.size() > 0) {
@@ -345,7 +349,9 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                     }
                 }
                 builder.add(".build();\n");
-                builder.add("$N.injectMembers($N);\n", rootField, "target");
+                if (rootParam.shouldInject) {
+                    builder.add("$N.injectMembers($N);\n", rootField, "target");
+                }
                 builder.add("return $N;\n", rootField);
                 methodSpecs.add(rootMethodBuilder.addCode(builder.build()).build());
                 if (rootParam.childs != null && rootParam.childs.size() > 0) {
@@ -360,7 +366,9 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             ClassName rootComponent = ClassName.get(child.packname, child.className);
             FieldSpec rootField = FieldSpec.builder(rootComponent, child.className.toLowerCase(), Modifier.PRIVATE).build();
             MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + child.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
-            rootMethodBuilder.addParameter(TypeName.get(child.element.asType()), "target");
+            if (child.shouldInject) {
+                rootMethodBuilder.addParameter(TypeName.get(child.element.asType()), "target");
+            }
             count = 0;
             CodeBlock.Builder builder = CodeBlock.builder();
             if (child.childs != null && child.childs.size() > 0) {
@@ -382,7 +390,9 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                 }
             }
             builder.add(".build();\n");
-            builder.add("$N.injectMembers($N);\n", rootField, "target");
+            if (child.shouldInject) {
+                builder.add("$N.injectMembers($N);\n", rootField, "target");
+            }
             builder.add("return $N;\n", rootField);
             methodSpecs.add(rootMethodBuilder.addCode(builder.build()).build());
             if (child.childs != null && child.childs.size() > 0) {
@@ -406,11 +416,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
     }
 
     class Param {
-        public static final int ROOT = 100;
-        public static final int PARENT = 101;
-        public static final int CHILD = 102;
-
-        Param(TypeElement scope, List<TypeName> modules, String packname, String className, TypeElement element, List<Param> childs, int childTag) {
+        Param(TypeElement scope, List<TypeName> modules, String packname, String className, TypeElement element, List<Param> childs, int childTag, boolean shouldInject) {
             this.scope = scope;
             this.modules = modules;
             this.packname = packname;
@@ -418,6 +424,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             this.element = element;
             this.childs = childs;
             this.childTag = childTag;
+            this.shouldInject = shouldInject;
         }
 
         TypeElement scope;
@@ -427,6 +434,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
         TypeElement element;
         List<Param> childs;
         int childTag;
+        boolean shouldInject;
     }
 
 

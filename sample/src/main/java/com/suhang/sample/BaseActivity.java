@@ -11,11 +11,11 @@ import com.suhang.sample.dagger.module.BaseModule;
 /**
  * Created by 苏杭 on 2017/6/8 21:12.
  */
-@GenSubComponent(tag = 11,childTag = 12  ,modules = BaseModule.class,scope = BaseScope.class)
+@GenSubComponent(tag = 11, childTag = 12, modules = BaseModule.class, scope = BaseScope.class, shouldInject = false)
 public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DaggerHelper.getInstance().getBaseActivityComponent(this, this);
+        DaggerHelper.getInstance().getBaseActivityComponent(this);
     }
 }
