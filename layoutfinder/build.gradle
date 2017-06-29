@@ -23,7 +23,7 @@ android {
 }
 publish {
     userOrg = 'suhang'
-    groupId = 'com.suhang'
+    groupId = 'com.suhang.lazy'
     artifactId = 'lazyannotation'
     publishVersion = $version
     desc = 'LazyAnnotation'

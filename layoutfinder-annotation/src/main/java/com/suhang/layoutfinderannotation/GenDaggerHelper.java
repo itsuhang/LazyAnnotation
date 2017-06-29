@@ -10,7 +10,6 @@ import java.lang.annotation.Target;
  * Created by 苏杭 on 2017/5/11 11:48.
  */
 @Retention(RetentionPolicy.CLASS)
-@Inherited
 @Target(ElementType.TYPE)
 public @interface GenDaggerHelper {
 }

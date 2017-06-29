@@ -12,7 +12,7 @@ dependencies {
 
 publish {
     userOrg = 'suhang'
-    groupId = 'com.suhang'
+    groupId = 'com.suhang.lazy'
     artifactId = 'lazyannotation_compiler'
     publishVersion = $version
     desc = 'LazyAnnotation'
