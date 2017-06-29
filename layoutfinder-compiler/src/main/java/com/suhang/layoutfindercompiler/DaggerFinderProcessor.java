@@ -201,6 +201,10 @@ public class DaggerFinderProcessor extends AbstractProcessor {
         }
     }
 
+    /**
+     * 得到GenInheritedSubComponent注解的基类,并找出基类的子类
+     * @param roundEnv
+     */
     private void processDaggerInheritedSub(RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getElementsAnnotatedWith(GenInheritedSubComponent.class)) {
             TypeElement typeElement = (TypeElement) element;
@@ -209,9 +213,13 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             List<TypeElement> elements = inheritedMap.get(name);
             if (elements == null) {
                 elements = new ArrayList<>();
-                elements.add(typeElement);
+                if (typeElement.getAnnotation(GenSubComponent.class) == null) {
+                    elements.add(typeElement);
+                }
             } else {
-                elements.add(typeElement);
+                if (typeElement.getAnnotation(GenSubComponent.class) == null) {
+                    elements.add(typeElement);
+                }
             }
             inheritedSubs.add(typeElement);
             inheritedMap.put(name, elements);
@@ -500,7 +508,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             } else {
                 for (ClassName inheriedChild : child.inheriedChilds) {
                     builder.beginControlFlow("if($N instanceof $T)", "target", inheriedChild);
-                    builder.addStatement("$T $N = ($T)$N",inheriedChild,inheriedChild.simpleName().toLowerCase(),inheriedChild,"target");
+                    builder.addStatement("$T $N = ($T)$N", inheriedChild, inheriedChild.simpleName().toLowerCase(), inheriedChild, "target");
                     builder.addStatement("$N.injectMembers($N)", rootField, inheriedChild.simpleName().toLowerCase());
                     builder.endControlFlow();
                 }
@@ -508,7 +516,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                     ClassName className = ClassName.get(child.packname, child.element.getSimpleName().toString());
                     String name = child.element.getSimpleName().toString().toLowerCase();
                     builder.beginControlFlow("if($N instanceof $T)", "target", className);
-                    builder.addStatement("$T $N = ($T)$N",className,name,className,"target");
+                    builder.addStatement("$T $N = ($T)$N", className, name, className, "target");
                     builder.addStatement("$N.injectMembers($N)", rootField, name);
                     builder.endControlFlow();
                 }
