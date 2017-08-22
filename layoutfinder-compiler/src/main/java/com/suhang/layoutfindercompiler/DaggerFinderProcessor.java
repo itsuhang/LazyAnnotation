@@ -431,9 +431,10 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                 ClassName className = ClassName.get(rootParam.packname, "Dagger" + rootParam.className);
                 ClassName rootComponent = ClassName.get(rootParam.packname, rootParam.className);
                 FieldSpec rootField = FieldSpec.builder(rootComponent, rootParam.className.toLowerCase(), Modifier.PUBLIC).build();
+                ClassName target = ClassName.get(rootParam.packname, rootParam.element.getSimpleName().toString());
                 MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + rootParam.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
                 if (rootParam.shouldInject) {
-                    rootMethodBuilder.addParameter(ClassName.get(rootParam.packname, rootParam.element.getSimpleName().toString()), "target");
+                    rootMethodBuilder.addParameter(target, "target");
                 }
                 count = 0;
                 CodeBlock.Builder builder = CodeBlock.builder();
@@ -472,6 +473,8 @@ public class DaggerFinderProcessor extends AbstractProcessor {
         for (Param child : childs) {
             ClassName rootComponent = ClassName.get(child.packname, child.className);
             FieldSpec rootField = FieldSpec.builder(rootComponent, child.className.toLowerCase(), Modifier.PRIVATE).build();
+            ClassName target = ClassName.get(child.packname, child.element.getSimpleName().toString());
+            FieldSpec rootFieldAppend = FieldSpec.builder(TypeName.get(ArrayList.class), target.simpleName().toLowerCase(), Modifier.PUBLIC).initializer("new $T()",TypeName.get(ArrayList.class)).build();
             MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + child.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
             if (child.inheriedChilds == null) {
                 if (child.shouldInject) {
@@ -483,7 +486,15 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             count = 0;
             CodeBlock.Builder builder = CodeBlock.builder();
             if (child.childs != null && child.childs.size() > 0) {
+                MethodSpec.Builder unProvider = MethodSpec.methodBuilder("remove" + child.className).addModifiers(Modifier.PUBLIC);
+                unProvider.addParameter(TypeName.OBJECT, "target");
+                unProvider.addStatement("$N.remove($N)",rootFieldAppend,"target");
+                unProvider.beginControlFlow("if($N.size()==0)",rootFieldAppend);
+                unProvider.addStatement("$N = null",rootField);
+                unProvider.endControlFlow();
                 fieldSpecs.add(rootField);
+                fieldSpecs.add(rootFieldAppend);
+                methodSpecs.add(unProvider.build());
                 builder = builder.add("$N = $N.$N().", rootField, parent, "provider" + child.className);
             } else {
                 builder = builder.add("$T $N = $N.$N().", rootComponent, rootField, parent, "provider" + child.className);
@@ -501,6 +512,9 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                 }
             }
             builder.add(".build();\n");
+            if (child.childs != null && child.childs.size() > 0) {
+                builder.add("$N.add($N);\n",rootFieldAppend,"target");
+            }
             if (child.inheriedChilds == null) {
                 if (child.shouldInject) {
                     builder.add("$N.injectMembers($N);\n", rootField, "target");
