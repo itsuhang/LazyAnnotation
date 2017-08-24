@@ -203,6 +203,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
 
     /**
      * 得到GenInheritedSubComponent注解的基类,并找出基类的子类
+     *
      * @param roundEnv
      */
     private void processDaggerInheritedSub(RoundEnvironment roundEnv) {
@@ -417,11 +418,36 @@ public class DaggerFinderProcessor extends AbstractProcessor {
 
     private void getHelper() {
         getRootHelper();
-        for (MethodSpec methodSpec : methodSpecs) {
-            helperTypeBuilder.addMethod(methodSpec);
-        }
+        ParameterizedTypeName map = ParameterizedTypeName.get(HashMap.class, Object.class, Integer.class);
+        FieldSpec rootFieldAppend = FieldSpec.builder(map, "maps", Modifier.PUBLIC).initializer("new $T()", map).build();
+        MethodSpec.Builder unProvider = MethodSpec.methodBuilder("removeComponent").addModifiers(Modifier.PUBLIC);
+        unProvider.addParameter(TypeName.OBJECT, "target");
+        unProvider.beginControlFlow("if($N.get($N)==null)",rootFieldAppend, "target");
+        unProvider.addStatement("return");
+        unProvider.endControlFlow();
+        unProvider.addStatement("$N.put($N,$N.get($N)-1)", rootFieldAppend, "target", rootFieldAppend, "target");
+        unProvider.beginControlFlow("if($N.get($N)==0)",rootFieldAppend, "target");
+        unProvider.addStatement("$N.remove($N)", rootFieldAppend, "target");
         for (FieldSpec fieldSpec : fieldSpecs) {
-            helperTypeBuilder.addField(fieldSpec);
+            unProvider.beginControlFlow("if($N==$N)", "target", fieldSpec);
+            unProvider.addStatement("$N=null", fieldSpec);
+            unProvider.endControlFlow();
+        }
+        unProvider.endControlFlow();
+        for (int i = 0; i < methodSpecs.size(); i++) {
+            MethodSpec spec = methodSpecs.get(i);
+            //不在此循环里添加,会报空指针!,匪夷所思啊
+            if (i == methodSpecs.size() - 1) {
+                helperTypeBuilder.addMethod(unProvider.build());
+            }
+            helperTypeBuilder.addMethod(spec);
+        }
+        for (int i = 0; i < fieldSpecs.size(); i++) {
+            FieldSpec spec = fieldSpecs.get(i);
+            if (i == fieldSpecs.size() - 1) {
+                helperTypeBuilder.addField(rootFieldAppend);
+            }
+            helperTypeBuilder.addField(spec);
         }
     }
 
@@ -440,6 +466,7 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                 CodeBlock.Builder builder = CodeBlock.builder();
                 if (rootParam.childs != null && rootParam.childs.size() > 0) {
                     fieldSpecs.add(rootField);
+                    builder.beginControlFlow("if($N==null)",rootField);
                     builder = builder.add("$N = $T.builder().", rootField, className);
                 } else {
                     builder = builder.add("$T $N = $T.builder().", rootComponent, rootField, className);
@@ -457,6 +484,9 @@ public class DaggerFinderProcessor extends AbstractProcessor {
                     }
                 }
                 builder.add(".build();\n");
+                if (rootParam.childs != null && rootParam.childs.size() > 0) {
+                    builder.endControlFlow();
+                }
                 if (rootParam.shouldInject) {
                     builder.add("$N.injectMembers($N);\n", rootField, "target");
                 }
@@ -473,8 +503,6 @@ public class DaggerFinderProcessor extends AbstractProcessor {
         for (Param child : childs) {
             ClassName rootComponent = ClassName.get(child.packname, child.className);
             FieldSpec rootField = FieldSpec.builder(rootComponent, child.className.toLowerCase(), Modifier.PRIVATE).build();
-            ClassName target = ClassName.get(child.packname, child.element.getSimpleName().toString());
-            FieldSpec rootFieldAppend = FieldSpec.builder(TypeName.get(ArrayList.class), target.simpleName().toLowerCase(), Modifier.PUBLIC).initializer("new $T()",TypeName.get(ArrayList.class)).build();
             MethodSpec.Builder rootMethodBuilder = MethodSpec.methodBuilder("get" + child.className).addModifiers(Modifier.PUBLIC).returns(rootComponent);
             if (child.inheriedChilds == null) {
                 if (child.shouldInject) {
@@ -486,15 +514,8 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             count = 0;
             CodeBlock.Builder builder = CodeBlock.builder();
             if (child.childs != null && child.childs.size() > 0) {
-                MethodSpec.Builder unProvider = MethodSpec.methodBuilder("remove" + child.className).addModifiers(Modifier.PUBLIC);
-                unProvider.addParameter(TypeName.OBJECT, "target");
-                unProvider.addStatement("$N.remove($N)",rootFieldAppend,"target");
-                unProvider.beginControlFlow("if($N.size()==0)",rootFieldAppend);
-                unProvider.addStatement("$N = null",rootField);
-                unProvider.endControlFlow();
                 fieldSpecs.add(rootField);
-                fieldSpecs.add(rootFieldAppend);
-                methodSpecs.add(unProvider.build());
+                builder.beginControlFlow("if($N==null)",rootField);
                 builder = builder.add("$N = $N.$N().", rootField, parent, "provider" + child.className);
             } else {
                 builder = builder.add("$T $N = $N.$N().", rootComponent, rootField, parent, "provider" + child.className);
@@ -513,7 +534,13 @@ public class DaggerFinderProcessor extends AbstractProcessor {
             }
             builder.add(".build();\n");
             if (child.childs != null && child.childs.size() > 0) {
-                builder.add("$N.add($N);\n",rootFieldAppend,"target");
+                builder.endControlFlow();
+            }
+            if (child.childs != null && child.childs.size() > 0) {
+                builder.beginControlFlow("if($N.get($N)==null)", "maps", rootField);
+                builder.addStatement("$N.put($N,0)", "maps", rootField);
+                builder.endControlFlow();
+                builder.add("$N.put($N,$N.get($N)+1);\n", "maps", rootField, "maps", rootField);
             }
             if (child.inheriedChilds == null) {
                 if (child.shouldInject) {

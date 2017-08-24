@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'com.novoda.bintray-release'
+apply plugin: 'maven'
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
@@ -17,6 +18,21 @@ publish {
     publishVersion = $version
     desc = 'LazyAnnotation'
     website = 'https://github.com/lightofrain/LazyAnnotation'
+}
+group='com.suhang.lazyannotation'
+version=$version
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            //提交到远程服务器：
+            // repository(url: "http://www.xxx.com/repos") {
+            //    authentication(userName: "admin", password: "admin")
+            // }
+            //本地的Maven地址设置为D:/repos
+            repository(url: uri('D:/repos'))
+        }
+    }
 }
 sourceCompatibility = "1.7"
 targetCompatibility = "1.7"
